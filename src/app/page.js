@@ -1,95 +1,76 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import Image from "next/image";
+import styles from "./page.module.css";
+import { useTransform, useScroll, motion } from "framer-motion";
+import { useLayoutEffect, useRef } from "react";
+import Lenis from "@studio-freight/lenis";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
+
+const images = [
+  "1.jpg",
+  "2.jpg",
+  "3.jpg",
+  "4.jpg",
+  "5.jpg",
+  "6.jpg",
+  "7.jpg",
+  "8.jpg",
+  "9.jpg",
+  "10.jpg",
+  "11.jpg",
+  "12.jpg",
+];
 
 export default function Home() {
+  const galleryRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: galleryRef,
+    // offest for when the animation starts and ends
+    // start: when the gallery enters on view = top of the gallery && bottom of screen
+    // end: when the gallery leaves the page = bottom of the gallery && top of the page
+    offset: ["start end", "end start"],
+  });
+
+  const { height, width } = useWindowDimensions();
+  const firstColumnYTransform = useTransform(scrollYProgress, [0, 1], [0, height * 2]);
+  const secondColumnYTransform = useTransform(scrollYProgress, [0, 1], [0, height * 3.3]);
+  const thirdColumnYTransform = useTransform(scrollYProgress, [0, 1], [0, height * 1.25]);
+  const fourthColumnYTransform = useTransform(scrollYProgress, [0, 1], [0, height * 3]);
+
+  useLayoutEffect(() => {
+    const lenis = new Lenis();
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }, []);
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <main>
+      <div className={styles.spacer}></div>
+      <div className={styles.gallery} ref={galleryRef}>
+        <Column images={images.slice(0, 3)} yTransform={firstColumnYTransform} />
+        <Column images={images.slice(3, 6)} yTransform={secondColumnYTransform} />
+        <Column images={images.slice(6, 10)} yTransform={thirdColumnYTransform} />
+        <Column images={images.slice(10, -1)} yTransform={fourthColumnYTransform} />
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <div className={styles.spacer}></div>
     </main>
-  )
+  );
 }
+
+const Column = ({ images, yTransform = 0 }) => {
+  return (
+    <motion.div style={{ y: yTransform }} className={styles.column}>
+      {images.map((imageSrc, index) => {
+        return (
+          <div key={index} className={styles.imageContainer}>
+            <Image src={`/images/${imageSrc}`} className={styles.image} fill alt="image" />
+          </div>
+        );
+      })}
+    </motion.div>
+  );
+};
